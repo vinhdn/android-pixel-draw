@@ -239,7 +239,7 @@ class DrawingActivity : AppCompatActivity(), FileChooserDialog.FileCallback, Ite
     }
 
     private fun setUpLayersView() {
-        val layersBtn = findViewById(R.id.layers_add)
+        val layersBtn = findViewById<CardView>(R.id.layers_add)
 
         layersBtn.setOnClickListener {
             pxerView.addLayer()
@@ -507,11 +507,11 @@ class DrawingActivity : AppCompatActivity(), FileChooserDialog.FileCallback, Ite
 
     private fun createNewProject() {
         val l = layoutInflater.inflate(R.layout.dialog_activity_drawing_newproject, null) as ConstraintLayout
-        val editText = l.findViewById(R.id.et1) as EditText
-        val seekBar = l.findViewById(R.id.sb) as SeekBar
-        val textView = l.findViewById(R.id.tv2) as TextView
-        val seekBar2 = l.findViewById(R.id.sb2) as SeekBar
-        val textView2 = l.findViewById(R.id.tv3) as TextView
+        val editText = l.findViewById<EditText>(R.id.et1) as EditText
+        val seekBar = l.findViewById<SeekBar>(R.id.sb) as SeekBar
+        val textView = l.findViewById<TextView>(R.id.tv2) as TextView
+        val seekBar2 = l.findViewById<SeekBar>(R.id.sb2) as SeekBar
+        val textView2 = l.findViewById<TextView>(R.id.tv3) as TextView
         seekBar.max = 127
         seekBar.progress = 39
         textView.text = "Width : " + 40

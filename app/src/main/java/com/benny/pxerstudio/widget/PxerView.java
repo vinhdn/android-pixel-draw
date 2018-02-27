@@ -3,19 +3,25 @@ package com.benny.pxerstudio.widget;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.graphics.ColorUtils;
 import android.text.InputType;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -27,6 +33,7 @@ import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.benny.pxerstudio.activity.DrawingActivity;
 import com.benny.pxerstudio.R;
+import com.benny.pxerstudio.activity.PixelActivity;
 import com.benny.pxerstudio.util.Tool;
 import com.benny.pxerstudio.shape.BaseShape;
 import com.google.gson.Gson;
@@ -48,7 +55,7 @@ import java.util.Queue;
 public class PxerView extends View implements ScaleGestureDetector.OnScaleGestureListener, GestureDetector.OnGestureListener {
 
     public static final String PXER_EXTENSION_NAME = ".pxer";
-    private final static Long pressDelay = 60L;
+    private final static Long pressDelay = 20L;
     private ArrayList<PxerLayer> pxerLayers = new ArrayList<>();
 
     //Drawing property
@@ -88,6 +95,13 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
     private ArrayList<Pxer> currentHistory = new ArrayList<>();
     //Callback
     private OnDropperCallBack dropperCallBack;
+
+    //Config
+    int[][] colors;
+    float minScaleToDraw = 5.0f;
+    private Bitmap numberBitmap;
+    private Canvas numberCanvas = new Canvas();
+    private Paint textPaint = new Paint();
 
     public PxerView(Context context) {
         super(context);
@@ -277,9 +291,31 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
     }
 
     public void createBlankProject(String name, int picWidth, int picHeight) {
-        this.projectName = name;
-        this.picWidth = picWidth;
-        this.picHeight = picHeight;
+        createBlankProject(name, picWidth, picHeight, R.drawable.im56);
+    }
+    public void createBlankProject(String name, int picWidth, int picHeight, int drawable) {
+        Bitmap bitmap1 = BitmapFactory.decodeResource(getResources(),
+                drawable);
+        colors = new int[bitmap1.getHeight()][bitmap1.getWidth()];
+        for (int i = 0; i < bitmap1.getHeight(); i++) {
+            for (int j = 0; j < bitmap1.getHeight(); j++) {
+                int p = bitmap1.getPixel(i, j);
+                int grayColor = 0x90;
+                int a = (p >> 24) & grayColor;
+                int r = (p >> 16) & grayColor;
+                int g = (p >> 8) & grayColor;
+                int b = p & grayColor;
+                int avg = (r + g + b) / 3;
+                p = (a << 24) | (avg << 16) | (avg << 8) | avg;
+                colors[i][j] = p;
+            }
+        }
+
+
+        this.picWidth = bitmap1.getWidth();
+        this.picHeight = bitmap1.getHeight();
+        picWidth = bitmap1.getWidth();
+        picHeight = bitmap1.getHeight();
 
         points = new Point[picWidth * picHeight];
         for (int i = 0; i < picWidth; i++) {
@@ -288,10 +324,30 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
             }
         }
 
-        Bitmap bitmap = Bitmap.createBitmap(picWidth, picHeight, Bitmap.Config.ARGB_8888);
-        bitmap.eraseColor(Color.TRANSPARENT);
+        history.clear();
+        redohistory.clear();
+        historyIndex.clear();
+
+
         pxerLayers.clear();
-        pxerLayers.add(new PxerLayer(bitmap));
+        Bitmap bitmap = Bitmap.createBitmap(picWidth, picHeight, Bitmap.Config.ARGB_8888);
+
+        history.add(new ArrayList<PxerHistory>());
+        redohistory.add(new ArrayList<PxerHistory>());
+        historyIndex.add(0);
+
+        PxerLayer layer = new PxerLayer(bitmap);
+        layer.visible = true;
+        pxerLayers.add(layer);
+//            for (int x = 0; x < out.get(i).pxers.size(); x++) {
+//                Pxer p = out.get(i).pxers.get(x);
+//                pxerLayers.get(i).bitmap.setPixel(p.x, p.y, p.color);
+//            }
+        for (int k = 0; k < picWidth; k++) {
+            for (int j = 0; j < picHeight; j++) {
+                pxerLayers.get(0).bitmap.setPixel(k, j, colors[k][j]);
+            }
+        }
         onLayerUpdate();
 
         mScaleFactor = 1.f;
@@ -333,8 +389,28 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
             return false;
         }
 
+        Bitmap bitmap1 = BitmapFactory.decodeResource(getResources(),
+                R.drawable.im100);
+        colors = new int[bitmap1.getHeight()][bitmap1.getWidth()];
+        for (int i = 0; i < bitmap1.getHeight(); i++) {
+            for (int j = 0; j < bitmap1.getHeight(); j++) {
+                int p = bitmap1.getPixel(i, j);
+                int grayColor = 0x90;
+                int a = (p >> 24) & grayColor;
+                int r = (p >> 16) & grayColor;
+                int g = (p >> 8) & grayColor;
+                int b = p & grayColor;
+                int avg = (r + g + b) / 3;
+                p = (a << 24) | (avg << 16) | (avg << 8) | avg;
+                colors[i][j] = p;
+            }
+        }
+
         this.picWidth = out.get(0).width;
         this.picHeight = out.get(0).height;
+
+        this.picWidth = bitmap1.getWidth();
+        this.picHeight = bitmap1.getHeight();
 
         points = new Point[picWidth * picHeight];
         for (int i = 0; i < picWidth; i++) {
@@ -359,9 +435,14 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
             PxerLayer layer = new PxerLayer(bitmap);
             layer.visible = out.get(i).visible;
             pxerLayers.add(layer);
-            for (int x = 0; x < out.get(i).pxers.size(); x++) {
-                Pxer p = out.get(i).pxers.get(x);
-                pxerLayers.get(i).bitmap.setPixel(p.x, p.y, p.color);
+//            for (int x = 0; x < out.get(i).pxers.size(); x++) {
+//                Pxer p = out.get(i).pxers.get(x);
+//                pxerLayers.get(i).bitmap.setPixel(p.x, p.y, p.color);
+//            }
+            for (int k = 0; k < picWidth; k++) {
+                for (int j = 0; j < picHeight; j++) {
+                    pxerLayers.get(i).bitmap.setPixel(k, j, colors[k][j]);
+                }
             }
         }
         onLayerUpdate();
@@ -451,6 +532,7 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
                         .show();
             return false;
         } else {
+            if (getContext() instanceof DrawingActivity)
             ((DrawingActivity) getContext()).setEdited(false);
             Gson gson = new Gson();
             ArrayList<PxableLayer> out = new ArrayList<>();
@@ -489,9 +571,18 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
 
         borderPaint = new Paint();
         borderPaint.setAntiAlias(true);
-        borderPaint.setStyle(Paint.Style.STROKE);
-        borderPaint.setStrokeWidth(1f);
-        borderPaint.setColor(Color.DKGRAY);
+        borderPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        borderPaint.setStrokeJoin(Paint.Join.ROUND);
+//        borderPaint.setStrokeWidth(1f);
+        borderPaint.setColor(Color.BLACK);
+
+//        textPaint.setTextSize(5f);
+//        textPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
+        textPaint.setStyle(Paint.Style.FILL);
+        textPaint.setColor(Color.BLACK);
+        textPaint.setTextSize(Tool.convertDpToPixel(2, getContext()));
+        textPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+//        textPaint.setAntiAlias(true);
 
         pxerPaint = new Paint();
         pxerPaint.setAntiAlias(true);
@@ -499,8 +590,8 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
         picBoundary = new RectF(0, 0, 0, 0);
 
         //Create a 40 x 40 project
-        this.picWidth = 40;
-        this.picHeight = 40;
+        this.picWidth = 100;
+        this.picHeight = 100;
 
         points = new Point[picWidth * picHeight];
         for (int i = 0; i < picWidth; i++) {
@@ -533,14 +624,52 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
         preview = Bitmap.createBitmap(picWidth, picHeight, Bitmap.Config.ARGB_8888);
 
         bgbitmap = Bitmap.createBitmap(picWidth * 2, picHeight * 2, Bitmap.Config.ARGB_8888);
-        bgbitmap.eraseColor(ColorUtils.setAlphaComponent(Color.WHITE, 200));
+        bgbitmap.eraseColor(ColorUtils.setAlphaComponent(Color.WHITE, 255));
 
         for (int i = 0; i < picWidth; i++) {
             for (int j = 0; j < picHeight * 2; j++) {
-                if (j % 2 != 0)
-                    bgbitmap.setPixel(i * 2 + 1, j, Color.argb(200, 220, 220, 220));
-                else
-                    bgbitmap.setPixel(i * 2, j, Color.argb(200, 220, 220, 220));
+                if (j % 2 != 0) {
+                    bgbitmap.setPixel(i * 2 + 1, j, Color.argb(255, 255, 255, 255));
+                } else {
+                    bgbitmap.setPixel(i * 2, j, Color.argb(255, 255, 255, 255));
+                }
+            }
+        }
+        drawNumber();
+    }
+
+    private void drawNumber() {
+        new TaskDrawNumberBackground().execute();
+    }
+
+    class TaskDrawNumberBackground extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            if (pxerSize <= 0 || picWidth <= 0) return false;
+            int scale = 1;
+            numberBitmap = Bitmap.createBitmap((int) (picWidth * pxerSize * scale), (int) (picHeight * pxerSize * scale), Bitmap.Config.ARGB_4444);
+            numberBitmap.eraseColor(Color.TRANSPARENT);
+            numberCanvas.setBitmap(numberBitmap);
+            numberCanvas.drawColor(Color.TRANSPARENT);
+            for (int x = 0; x < picWidth; x++) {
+                for (int y = 0; y < picHeight; y++) {
+
+                    float posx = (picBoundary.left) + pxerSize * x * scale;
+                    float posy = (picBoundary.top) + pxerSize * y * scale;
+                    if (colors[x][y] != 0) {
+                        numberCanvas.drawText("10", posx, posy, textPaint);
+                    }
+                }
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aVoid) {
+            super.onPostExecute(aVoid);
+            if (aVoid) {
+                invalidate();
             }
         }
     }
@@ -563,7 +692,7 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
             }
         }
 
-        if (event.getPointerCount() > 1) {
+        if (event.getPointerCount() > 1 || mScaleFactor <= minScaleToDraw) {
             prePressedTime = -1L;
             mGestureDetector.onTouchEvent(event);
 
@@ -731,8 +860,26 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
             if (pxerLayers.get(i).visible)
                 canvas.drawBitmap(pxerLayers.get(i).bitmap, null, picBoundary, pxerPaint);
         }
-        if (showGrid)
-            canvas.drawPath(grid, borderPaint);
+        if (showGrid) {
+//            canvas.drawPath(grid, borderPaint);
+            for (int x = 0; x < picWidth + 1; x++) {
+                float posx = (picBoundary.left) + pxerSize * x;
+                canvas.drawLine(posx, picBoundary.top, posx, picBoundary.bottom, borderPaint);
+//                grid.moveTo(posx, picBoundary.top);
+//                grid.lineTo(posx, picBoundary.bottom);
+            }
+            for (int y = 0; y < picHeight + 1; y++) {
+                float posy = (picBoundary.top) + pxerSize * y;
+                canvas.drawLine(picBoundary.left, posy, picBoundary.right, posy, borderPaint);
+//                grid.moveTo(picBoundary.left, posy);
+//                grid.lineTo(picBoundary.right, posy);
+            }
+            if (numberBitmap == null) {
+                drawNumber();
+            } else {
+                canvas.drawBitmap(numberBitmap, null, picBoundary, pxerPaint);
+            }
+        }
         canvas.restore();
     }
 
@@ -748,7 +895,10 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
 
     private void initPxerInfo() {
         int length = Math.min(getHeight(), getWidth());
-        pxerSize = length / 40;
+        pxerSize = length / 100;
+        if (numberBitmap == null) {
+            drawNumber();
+        }
         picBoundary.set(0, 0, pxerSize * picWidth, pxerSize * picHeight);
         scaleAtFirst();
 
@@ -800,7 +950,9 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
     @Override
     public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
         float scale = scaleGestureDetector.getScaleFactor();
-
+        if (scale <= 0.5 || scale >= 20) {
+            return false;
+        }
         mScaleFactor *= scale;
         Matrix transformationMatrix = new Matrix();
         float focusX = scaleGestureDetector.getFocusX();
@@ -811,6 +963,12 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
 
         transformationMatrix.postTranslate(focusX, focusY);
         drawMatrix.postConcat(transformationMatrix);
+
+        if (mScaleFactor > minScaleToDraw) {
+            showGrid = true;
+        } else {
+            showGrid = false;
+        }
 
         invalidate();
         return true;
@@ -840,12 +998,16 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
     }
 
     public void onLayerUpdate() {
+        if (getContext() instanceof DrawingActivity)
         ((DrawingActivity) getContext()).onLayerUpdate();
+        if (getContext() instanceof PixelActivity)
+        ((PixelActivity) getContext()).onLayerUpdate();
     }
 
     @Override
     public void invalidate() {
-        ((DrawingActivity) getContext()).onLayerRefresh();
+        if (getContext() instanceof DrawingActivity)
+            ((DrawingActivity) getContext()).onLayerRefresh();
         super.invalidate();
     }
 
@@ -862,7 +1024,7 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
     public void setUnrecordedChanges(boolean unrecordedChanges) {
         isUnrecordedChanges = unrecordedChanges;
 
-        if (!((DrawingActivity) getContext()).isEdited())
+        if (getContext() instanceof  DrawingActivity && !((DrawingActivity) getContext()).isEdited())
             ((DrawingActivity) getContext()).setEdited(isUnrecordedChanges);
     }
 

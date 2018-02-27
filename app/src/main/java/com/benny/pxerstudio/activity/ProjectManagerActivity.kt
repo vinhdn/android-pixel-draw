@@ -16,9 +16,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import com.benny.pxerstudio.R
 import com.benny.pxerstudio.pxerexportable.ExportingUtils
-import com.benny.pxerstudio.util.AdHelper
 import com.benny.pxerstudio.util.Tool
-import com.google.android.gms.ads.AdListener
 import com.mikepenz.fastadapter.FastAdapter
 import com.mikepenz.fastadapter.adapters.ItemAdapter
 import com.mikepenz.fastadapter.items.AbstractItem
@@ -35,41 +33,10 @@ class ProjectManagerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_project_manager)
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
+        val toolbar = findViewById<Toolbar>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
-        val rv = findViewById(R.id.rv) as RecyclerView
-
-        //Comment this line out and the if statement if you forked this repo or downloaded the code
-        val adView = AdHelper.checkAndEnableAd(this)
-        if (adView != null) {
-            val fl = FrameLayout(this)
-            fl.visibility = View.GONE
-
-            adView.adListener = object : AdListener() {
-                override fun onAdLoaded() {
-                    fl.visibility = View.VISIBLE
-                    super.onAdLoaded()
-                }
-            }
-
-            //ProgressBar progressBar = new ProgressBar(this,null,android.R.attr.progressBarStyle);
-            //progressBar.setIndeterminate(true);
-
-            val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            lp.addRule(RelativeLayout.CENTER_HORIZONTAL)
-            lp.addRule(RelativeLayout.ALIGN_PARENT_TOP)
-
-            val lp2 = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            lp2.gravity = Gravity.CENTER
-
-            //fl.addView(progressBar,lp2);
-            fl.addView(adView)
-            (findViewById(R.id.content_project_manager) as RelativeLayout).addView(fl, lp)
-
-            fl.id = R.id.ad_view
-            (rv.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.BELOW, R.id.ad_view)
-        }
+        val rv = findViewById<RecyclerView>(R.id.rv) as RecyclerView
 
         rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         fa = FastAdapter()
@@ -88,7 +55,7 @@ class ProjectManagerActivity : AppCompatActivity() {
                 projects.add(temp[i])
             }
             if (projects.size >= 1) {
-                findViewById(R.id.noProjectFound).visibility = View.GONE
+                findViewById<View>(R.id.noProjectFound).visibility = View.GONE
 
                 for (i in projects.indices) {
                     val mName = projects[i].name.substring(0, projects[i].name.lastIndexOf('.'))
@@ -135,7 +102,7 @@ class ProjectManagerActivity : AppCompatActivity() {
                                     projects.removeAt(position)
 
                                     if (projects.size < 1)
-                                        findViewById(R.id.noProjectFound).visibility = View.VISIBLE
+                                        findViewById<TextView>(R.id.noProjectFound).visibility = View.VISIBLE
 
                                     val newIntent = Intent()
                                     newIntent.putExtra("fileNameChanged", true)
@@ -184,8 +151,8 @@ class ProjectManagerActivity : AppCompatActivity() {
         }
 
         class ViewHolder internal constructor(view: View) : RecyclerView.ViewHolder(view) {
-            internal var projectTitle: TextView = view.findViewById(R.id.title) as TextView
-            internal var projectPath: TextView = view.findViewById(R.id.path) as TextView
+            internal var projectTitle: TextView = view.findViewById<TextView>(R.id.title) as TextView
+            internal var projectPath: TextView = view.findViewById<TextView>(R.id.path) as TextView
         }
     }
 

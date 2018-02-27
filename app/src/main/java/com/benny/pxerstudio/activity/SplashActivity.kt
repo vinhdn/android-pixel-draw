@@ -11,7 +11,6 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 
 import com.benny.pxerstudio.R
-import com.benny.pxerstudio.util.AdHelper
 import com.benny.pxerstudio.util.Tool
 
 class SplashActivity : AppCompatActivity() {
@@ -22,15 +21,13 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(com.benny.pxerstudio.R.layout.activity_splash)
 
-        (findViewById(R.id.iv) as View).animate().alpha(1f).scaleY(1.1f).scaleX(1.1f).setDuration(2000L).interpolator = AccelerateDecelerateInterpolator()
-        (findViewById(R.id.tv) as View).animate().alpha(1f).scaleY(1.1f).scaleX(1.1f).setDuration(2000L).interpolator = AccelerateDecelerateInterpolator()
-
-        AdHelper.checkAndInitAd(this)
+//        (findViewById<View>(R.id.iv) as View).animate().alpha(1f).scaleY(1.1f).scaleX(1.1f).setDuration(2000L).interpolator = AccelerateDecelerateInterpolator()
+        (findViewById<View>(R.id.tv) as View).animate().alpha(1f).scaleY(1.1f).scaleX(1.1f).setDuration(2000L).interpolator = AccelerateDecelerateInterpolator()
 
         handler = Handler()
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
             handler!!.postDelayed({
-                startActivity(Intent(this@SplashActivity, DrawingActivity::class.java))
+                startActivity(Intent(this@SplashActivity, SelectImageActivity::class.java))
                 finish()
             }, 2000L)
         else
@@ -47,7 +44,7 @@ class SplashActivity : AppCompatActivity() {
                 }
             }
             handler!!.postDelayed({
-                startActivity(Intent(this@SplashActivity, DrawingActivity::class.java))
+                startActivity(Intent(this@SplashActivity, SelectImageActivity::class.java))
                 finish()
             }, 2000L)
         }

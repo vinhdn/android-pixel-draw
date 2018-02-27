@@ -3,15 +3,15 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '26.0.2'
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         applicationId "com.benny.pxerstudio"
-        minSdkVersion 16
-        targetSdkVersion 25
-        versionCode 4
-        versionName "1.0.3"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
     }
     buildTypes {
         release {
@@ -31,20 +31,14 @@ dependencies {
     compile('com.github.clans:fab:1.6.4') {
         exclude group: 'com.android.support'
     }
-
-
-    compile('com.afollestad.material-dialogs:commons:0.9.4.5')
-    compile('com.afollestad.material-dialogs:core:0.9.4.5')
-    compile('com.mikepenz:fastadapter-extensions:2.6.3@aar'){
+    compile 'com.afollestad.material-dialogs:commons:0.9.4.5'
+    compile 'com.afollestad.material-dialogs:core:0.9.4.5'
+    compile('com.mikepenz:fastadapter-extensions:2.6.3@aar') {
         exclude group: 'com.android.support'
     }
     compile('com.mikepenz:fastadapter:2.6.2@aar') {
         transitive = true
     }
-
-    //Google service lib
-    compile 'com.google.firebase:firebase-ads:11.4.2'
-
     //Support lib
     compile "com.android.support:appcompat-v7:$supportLibVersion"
     compile "com.android.support:support-v4:$supportLibVersion"
@@ -52,10 +46,8 @@ dependencies {
     compile "com.android.support:cardview-v7:$supportLibVersion"
     compile "com.android.support:support-v13:$supportLibVersion"
     compile 'com.android.support.constraint:constraint-layout:1.1.0-beta2'
-
     //Others
     compile 'com.google.code.gson:gson:2.8.2'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation project(':library')
 }
-
-apply plugin: 'com.google.gms.google-services'
