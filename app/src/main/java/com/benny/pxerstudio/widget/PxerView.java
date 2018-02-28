@@ -300,13 +300,27 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
         for (int i = 0; i < bitmap1.getHeight(); i++) {
             for (int j = 0; j < bitmap1.getHeight(); j++) {
                 int p = bitmap1.getPixel(i, j);
-                int grayColor = 0x90;
+                if (p == Color.WHITE) {
+                    colors[i][j] = p;
+                    return;
+                }
+//                ColorUtils.colorToLAB();
+                int grayColor = 0xda;
                 int a = (p >> 24) & grayColor;
                 int r = (p >> 16) & grayColor;
                 int g = (p >> 8) & grayColor;
                 int b = p & grayColor;
                 int avg = (r + g + b) / 3;
                 p = (a << 24) | (avg << 16) | (avg << 8) | avg;
+//                float[] hls = new float[3];
+//                ColorUtils.colorToHSL(p, hls);
+//                if (hls[2] < (1 - 1 * 0.4)) {
+//                    hls[2] = hls[2] + hls[2] * 0.4f;
+//                }
+//                if (hls[2] <= 0.6) {
+//                    hls[2] = 0.6f;
+//                }
+//                p = ColorUtils.HSLToColor(hls);
                 colors[i][j] = p;
             }
         }
@@ -578,10 +592,10 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
 
 //        textPaint.setTextSize(5f);
 //        textPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
-        textPaint.setStyle(Paint.Style.FILL);
+//        textPaint.setStyle(Paint.Style.FILL);
         textPaint.setColor(Color.BLACK);
         textPaint.setTextSize(Tool.convertDpToPixel(2, getContext()));
-        textPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
+//        textPaint.setTypeface(Typeface.create("Roboto", Typeface.NORMAL));
 //        textPaint.setAntiAlias(true);
 
         pxerPaint = new Paint();
@@ -748,10 +762,11 @@ public class PxerView extends View implements ScaleGestureDetector.OnScaleGestur
 
         switch (getMode()) {
             case Normal:
-                if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_UP)
+                if (event.getAction() == MotionEvent.ACTION_DOWN)
                     break;
-
-                bitmapToDraw.setPixel(x, y, ColorUtils.compositeColors(selectedColor, bitmapToDraw.getPixel(x, y)));
+                if (event.getAction() == MotionEvent.ACTION_UP && prePressedTime != -1L && System.currentTimeMillis() - prePressedTime <= pressDelay)
+                    break;
+                bitmapToDraw.setPixel(x, y, selectedColor);
                 setUnrecordedChanges(true);
                 break;
             case Dropper:

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context="com.benny.pxerstudio.activity.SelectImageActivity">
+    android:background="#fff">
 
     <TextView
         android:layout_width="match_parent"
@@ -14,15 +14,15 @@
         android:gravity="center"
         android:padding="20dp"
         android:text="Chọn"
-        android:textAllCaps="true"
-        android:textColor="#fff" />
+        android:textColor="#000000" />
 
     <ImageView
         android:id="@+id/im24"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/im24" />
+        android:src="@drawable/im24"
+        android:contentDescription="im24" />
 
     <ImageView
         android:id="@+id/im56"
